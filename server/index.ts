@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import { GoogleGenerativeAI } from '@google/generative-ai'
@@ -9,7 +10,9 @@ const PORT = 3001
 app.use(cors({ origin: 'http://localhost:5173' }))
 app.use(express.json())
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '')
+const apiKey = process.env.GEMINI_API_KEY ?? ''
+console.log('GEMINI_API_KEY loaded:', apiKey ? `${apiKey.slice(0, 6)}...` : 'MISSING')
+const genAI = new GoogleGenerativeAI(apiKey)
 
 interface ChatRequestMessage {
   role: 'user' | 'assistant'
@@ -70,7 +73,7 @@ app.post('/api/chat', async (req, res) => {
 
   try {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-pro',
+      model: 'gemini-2.0-flash',
       systemInstruction: SYSTEM_PROMPT,
     })
 

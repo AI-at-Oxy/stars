@@ -10,7 +10,7 @@ export function IntroScreen() {
   async function handleBegin() {
     setStarting(true)
     dispatch({ type: 'SET_PHASE', payload: 'chat' })
-    // Send the opening message to get the sherpa to greet the user
+    // Send the opening message to get the guide to greet the user
     await sendMessage(
       'Hello! I\'m here to learn about the stars and constellations.',
       {}

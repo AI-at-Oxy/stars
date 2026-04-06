@@ -5,6 +5,14 @@ interface MessageBubbleProps {
   isStreaming?: boolean
 }
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+}
+
 export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
   const isUser = message.role === 'user'
 
@@ -24,7 +32,7 @@ export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
             : 'bg-space-800/80 text-star-white/90 border border-star-blue/15 rounded-tl-sm'
         }`}
       >
-        <p className="font-serif whitespace-pre-wrap">{message.content}
+        <p className="font-serif whitespace-pre-wrap">{stripMarkdown(message.content)}
           {isStreaming && (
             <span className="inline-block w-0.5 h-4 bg-star-blue/70 ml-0.5 animate-pulse" />
           )}

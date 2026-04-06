@@ -30,7 +30,7 @@ export function TutorPanel({ quizReady, onStartQuiz, onDismissQuiz }: TutorPanel
           <span className="text-star-gold text-lg">✦</span>
           <div>
             <h2 className="text-star-white/90 text-sm font-serif font-semibold">
-              Sherpa of the Stars
+              Guide of the Stars
             </h2>
             {selected && (
               <p className="text-star-blue/70 text-xs font-serif italic">
@@ -99,7 +99,7 @@ export function TutorPanel({ quizReady, onStartQuiz, onDismissQuiz }: TutorPanel
         <UserInput
           onSend={handleSend}
           disabled={isStreaming}
-          placeholder={selected ? `Ask about ${selected.name}...` : 'Ask the sherpa anything...'}
+          placeholder={selected ? `Ask about ${selected.name}...` : 'Ask your guide anything...'}
         />
       )}
     </div>

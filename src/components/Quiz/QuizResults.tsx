@@ -8,7 +8,7 @@ export function QuizResults({ score, total, onClose }: QuizResultsProps) {
   const pct = score / total
 
   const message = pct === 1
-    ? 'Perfect! You\'re a true star sherpa!'
+    ? 'Perfect! You\'re a true guide of the stars!'
     : pct >= 0.8
     ? 'Excellent! The stars shine bright in your mind.'
     : pct >= 0.6

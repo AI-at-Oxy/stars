@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GoogleGenAI } from '@google/genai'
 import { SYSTEM_PROMPT } from './systemPrompt.js'
 
 const app = express()
@@ -12,7 +12,7 @@ app.use(express.json())
 
 const apiKey = process.env.GEMINI_API_KEY ?? ''
 console.log('GEMINI_API_KEY loaded:', apiKey ? `${apiKey.slice(0, 6)}...` : 'MISSING')
-const genAI = new GoogleGenerativeAI(apiKey)
+const genAI = new GoogleGenAI({ apiKey })
 
 interface ChatRequestMessage {
   role: 'user' | 'assistant'
@@ -47,7 +47,7 @@ app.post('/api/chat', async (req, res) => {
   let historyMessages: ChatRequestMessage[]
 
   if (constellationEvent?.type === 'selected') {
-    newUserMessage = `[CONTEXT: The user just clicked on ${constellationEvent.constellationName} on the interactive star map. Guide them to explore this constellation. Begin with an engaging story hook or evocative image — don't just announce what it is.]`
+    newUserMessage = `[CONTEXT: The user just clicked on ${constellationEvent.constellationName} on the interactive star map. Open with ONE vivid image or exciting story hook — just a sentence or two. Then ask the learner what they already know about it or what it looks like to them. Do not give a full introduction yet. Let their answer guide what comes next.]`
     historyMessages = messages.filter(m => m.content.trim() !== '')
   } else if (quizRequest) {
     const explored = context?.exploredConstellations?.join(', ') ?? 'several constellations'
@@ -72,16 +72,16 @@ app.post('/api/chat', async (req, res) => {
   res.setHeader('Connection', 'keep-alive')
 
   try {
-    const model = genAI.getGenerativeModel({
+    const chat = genAI.chats.create({
       model: 'gemini-2.5-flash',
-      systemInstruction: SYSTEM_PROMPT,
+      config: { systemInstruction: SYSTEM_PROMPT },
+      history: geminiHistory,
     })
 
-    const chat = model.startChat({ history: geminiHistory })
-    const result = await chat.sendMessageStream(newUserMessage)
+    const stream = await chat.sendMessageStream({ message: newUserMessage })
 
-    for await (const chunk of result.stream) {
-      const text = chunk.text()
+    for await (const chunk of stream) {
+      const text = chunk.text
       if (text) {
         res.write(`data: ${JSON.stringify({ token: text })}\n\n`)
       }

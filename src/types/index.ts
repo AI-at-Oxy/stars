@@ -64,6 +64,7 @@ export type AppAction =
   | { type: 'SELECT_CONSTELLATION'; payload: string | null }
   | { type: 'ADD_MESSAGE'; payload: ChatMessage }
   | { type: 'APPEND_STREAM_TOKEN'; payload: { id: string; token: string } }
+  | { type: 'UPDATE_MESSAGE'; payload: { id: string; content: string } }
   | { type: 'UNLOCK_CONSTELLATION'; payload: string }
   | { type: 'MARK_EXPLORED'; payload: string }
   | { type: 'SET_STREAMING'; payload: boolean }

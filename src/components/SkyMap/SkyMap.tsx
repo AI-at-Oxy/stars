@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { CONSTELLATIONS } from '../../data/constellations'
 import { STARS, BACKGROUND_STARS, STARS_BY_ID } from '../../data/stars'
 import { projectStar, starRadius } from '../../hooks/useSkyMap'
@@ -6,6 +6,7 @@ import { StarField } from './StarField'
 import { ConstellationLines } from './ConstellationLines'
 import { ConstellationLabel } from './ConstellationLabel'
 import { ConstellationHitArea } from './ConstellationHitArea'
+import { ConstellationArt } from './ConstellationArt'
 import type { Star } from '../../types'
 
 interface SkyMapProps {
@@ -26,6 +27,7 @@ export function SkyMap({
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const [hoveredConstellation, setHoveredConstellation] = useState<string | null>(null)
+  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 })
 
   useEffect(() => {
     const observer = new ResizeObserver(entries => {
@@ -63,8 +65,43 @@ export function SkyMap({
     ...Object.fromEntries(projectedStars.map(s => [s.id, s])),
   }
 
+  // Compute pan limits: how far do constellation stars extend beyond the viewport?
+  const constellationStarIds = new Set(CONSTELLATIONS.flatMap(c => c.stars))
+  const constellationPositions = projectedStars.filter(
+    s => constellationStarIds.has(s.id) && s.x !== undefined && s.y !== undefined
+  )
+  const edgePadding = 28
+  const xs = constellationPositions.map(s => s.x as number)
+  const ys = constellationPositions.map(s => s.y as number)
+  const minX = xs.length ? Math.min(...xs) : 0
+  const maxX = xs.length ? Math.max(...xs) : width
+  const minY = ys.length ? Math.min(...ys) : 0
+  const maxY = ys.length ? Math.max(...ys) : height
+  const maxPanX = Math.max(0, Math.max(edgePadding - minX, maxX - width + edgePadding))
+  const maxPanY = Math.max(0, Math.max(edgePadding - minY, maxY - height + edgePadding))
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    const nx = (e.clientX - rect.left) / rect.width
+    const ny = (e.clientY - rect.top) / rect.height
+    setMouseOffset({
+      x: -(nx - 0.5) * 2 * maxPanX,
+      y: -(ny - 0.5) * 2 * maxPanY,
+    })
+  }, [maxPanX, maxPanY])
+
+  const handleMouseLeave = useCallback(() => {
+    setMouseOffset({ x: 0, y: 0 })
+  }, [])
+
   return (
-    <div ref={containerRef} className="relative w-full h-full">
+    <div
+      ref={containerRef}
+      className="relative w-full h-full"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       {/* Shooting stars — occasional meteors */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="shooting-star" style={{
@@ -105,93 +142,112 @@ export function SkyMap({
             <stop offset="100%" stopColor="#1d4ed8" stopOpacity="0" />
           </radialGradient>
         </defs>
-        <ellipse
-          cx={width * 0.22} cy={height * 0.38}
-          rx={width * 0.18} ry={height * 0.14}
-          fill="url(#nebula-teal)"
-          style={{ animation: 'nebula-breathe 9s ease-in-out 0s infinite' }}
-        />
-        <ellipse
-          cx={width * 0.75} cy={height * 0.6}
-          rx={width * 0.14} ry={height * 0.16}
-          fill="url(#nebula-purple)"
-          style={{ animation: 'nebula-breathe 12s ease-in-out 3s infinite' }}
-        />
-        <ellipse
-          cx={width * 0.55} cy={height * 0.25}
-          rx={width * 0.12} ry={height * 0.10}
-          fill="url(#nebula-blue)"
-          style={{ animation: 'nebula-breathe 15s ease-in-out 6s infinite' }}
-        />
-        {/* Background filler stars */}
-        <StarField stars={projectedBackground} />
-
-        {/* Named catalog stars */}
-        <StarField stars={projectedStars} />
-
-        {/* Constellation lines (rendered under hit areas) */}
-        {CONSTELLATIONS.map(constellation => (
-          <ConstellationLines
-            key={constellation.id}
-            constellation={constellation}
-            starsById={starsById}
-            isUnlocked={unlockedConstellations.includes(constellation.id)}
-            isSelected={selectedConstellation === constellation.id}
-            isHovered={hoveredConstellation === constellation.id}
-            isHighlighted={highlightedConstellations.includes(constellation.id)}
+        {/* Sky content — pans with mouse to reveal off-screen constellations */}
+        <g
+          transform={`translate(${mouseOffset.x}, ${mouseOffset.y})`}
+          style={{ transition: 'transform 0.12s ease-out' }}
+        >
+          {/* Nebula wisps — faint atmospheric depth */}
+          <ellipse
+            cx={width * 0.22} cy={height * 0.38}
+            rx={width * 0.18} ry={height * 0.14}
+            fill="url(#nebula-teal)"
+            style={{ animation: 'nebula-breathe 9s ease-in-out 0s infinite' }}
           />
-        ))}
+          <ellipse
+            cx={width * 0.75} cy={height * 0.6}
+            rx={width * 0.14} ry={height * 0.16}
+            fill="url(#nebula-purple)"
+            style={{ animation: 'nebula-breathe 12s ease-in-out 3s infinite' }}
+          />
+          <ellipse
+            cx={width * 0.55} cy={height * 0.25}
+            rx={width * 0.12} ry={height * 0.10}
+            fill="url(#nebula-blue)"
+            style={{ animation: 'nebula-breathe 15s ease-in-out 6s infinite' }}
+          />
 
-        {/* Pulsing halos on stars of chat-mentioned constellations */}
-        {CONSTELLATIONS
-          .filter(c => highlightedConstellations.includes(c.id) && selectedConstellation !== c.id)
-          .flatMap(c => c.stars.map(id => starsById[id]).filter((s): s is Star => !!(s?.x && s?.y)))
-          .map(star => (
-            <circle
-              key={`halo-${star.id}`}
-              cx={star.x}
-              cy={star.y}
-              r={starRadius(star.mag) + 3}
-              fill="rgba(255, 217, 125, 0.15)"
-              stroke="rgba(255, 217, 125, 0.8)"
-              strokeWidth={1.2}
-              style={{
-                transformBox: 'fill-box',
-                transformOrigin: 'center',
-                animation: 'star-halo 2s ease-out infinite',
-                animationDelay: `${(star.id % 8) * 0.25}s`,
-                pointerEvents: 'none',
-              }}
+          {/* Background filler stars */}
+          <StarField stars={projectedBackground} />
+
+          {/* Named catalog stars */}
+          <StarField stars={projectedStars} />
+
+          {/* Constellation lines (rendered under hit areas) */}
+          {CONSTELLATIONS.map(constellation => (
+            <ConstellationLines
+              key={constellation.id}
+              constellation={constellation}
+              starsById={starsById}
+              isUnlocked={unlockedConstellations.includes(constellation.id)}
+              isSelected={selectedConstellation === constellation.id}
+              isHovered={hoveredConstellation === constellation.id}
+              isHighlighted={highlightedConstellations.includes(constellation.id)}
             />
-          ))
-        }
+          ))}
 
-        {/* Labels */}
-        {CONSTELLATIONS.map(constellation => (
-          <ConstellationLabel
-            key={constellation.id}
-            constellation={constellation}
-            starsById={starsById}
-            isSelected={selectedConstellation === constellation.id}
-            isHovered={hoveredConstellation === constellation.id}
-            isExplored={exploredConstellations.includes(constellation.id)}
-            isHighlighted={highlightedConstellations.includes(constellation.id)}
-          />
-        ))}
+          {/* Constellation art overlays — Stellarium illustrations, screen-blended onto sky */}
+          {CONSTELLATIONS.map(constellation => (
+            <ConstellationArt
+              key={constellation.id}
+              constellation={constellation}
+              starsById={starsById}
+              isSelected={selectedConstellation === constellation.id}
+              isHovered={hoveredConstellation === constellation.id}
+            />
+          ))}
 
-        {/* Interactive hit areas (on top) */}
-        {CONSTELLATIONS.map(constellation => (
-          <ConstellationHitArea
-            key={constellation.id}
-            constellation={constellation}
-            starsById={starsById}
-            isSelected={selectedConstellation === constellation.id}
-            isHovered={hoveredConstellation === constellation.id}
-            onMouseEnter={() => setHoveredConstellation(constellation.id)}
-            onMouseLeave={() => setHoveredConstellation(null)}
-            onClick={() => onConstellationSelect(constellation.id)}
-          />
-        ))}
+          {/* Pulsing halos on stars of chat-mentioned constellations */}
+          {CONSTELLATIONS
+            .filter(c => highlightedConstellations.includes(c.id) && selectedConstellation !== c.id)
+            .flatMap(c => c.stars.map(id => starsById[id]).filter((s): s is Star => !!(s?.x && s?.y)))
+            .map(star => (
+              <circle
+                key={`halo-${star.id}`}
+                cx={star.x}
+                cy={star.y}
+                r={starRadius(star.mag) + 3}
+                fill="rgba(255, 217, 125, 0.15)"
+                stroke="rgba(255, 217, 125, 0.8)"
+                strokeWidth={1.2}
+                style={{
+                  transformBox: 'fill-box',
+                  transformOrigin: 'center',
+                  animation: 'star-halo 2s ease-out infinite',
+                  animationDelay: `${(star.id % 8) * 0.25}s`,
+                  pointerEvents: 'none',
+                }}
+              />
+            ))
+          }
+
+          {/* Labels */}
+          {CONSTELLATIONS.map(constellation => (
+            <ConstellationLabel
+              key={constellation.id}
+              constellation={constellation}
+              starsById={starsById}
+              isSelected={selectedConstellation === constellation.id}
+              isHovered={hoveredConstellation === constellation.id}
+              isExplored={exploredConstellations.includes(constellation.id)}
+              isHighlighted={highlightedConstellations.includes(constellation.id)}
+            />
+          ))}
+
+          {/* Interactive hit areas (on top) */}
+          {CONSTELLATIONS.map(constellation => (
+            <ConstellationHitArea
+              key={constellation.id}
+              constellation={constellation}
+              starsById={starsById}
+              isSelected={selectedConstellation === constellation.id}
+              isHovered={hoveredConstellation === constellation.id}
+              onMouseEnter={() => setHoveredConstellation(constellation.id)}
+              onMouseLeave={() => setHoveredConstellation(null)}
+              onClick={() => onConstellationSelect(constellation.id)}
+            />
+          ))}
+        </g>
       </svg>
 
       {/* Hint text */}

@@ -112,9 +112,38 @@ export function useChat() {
         }
       }
 
-      const mentioned = parseConstellationMentions(accumulatedContent)
-      if (mentioned.length > 0) {
-        dispatch({ type: 'SET_HIGHLIGHTED', payload: mentioned })
+      // Split into paragraphs and stagger as separate bubbles
+      const paragraphs = accumulatedContent
+        .split(/\n\n+/)
+        .map(p => p.trim())
+        .filter(p => p.length > 0)
+
+      if (paragraphs.length <= 1) {
+        // Single paragraph — keep the streamed message as-is
+        const mentioned = parseConstellationMentions(accumulatedContent)
+        if (mentioned.length > 0) {
+          dispatch({ type: 'SET_HIGHLIGHTED', payload: mentioned })
+        }
+      } else {
+        // Replace the streamed placeholder with the first paragraph
+        dispatch({ type: 'UPDATE_MESSAGE', payload: { id: assistantId, content: paragraphs[0] } })
+
+        // Add remaining paragraphs with 0.5s delay between each
+        for (let i = 1; i < paragraphs.length; i++) {
+          await new Promise(resolve => setTimeout(resolve, 500))
+          const bubbleMsg: ChatMessage = {
+            id: makeId(),
+            role: 'assistant',
+            content: paragraphs[i],
+            timestamp: Date.now(),
+          }
+          dispatch({ type: 'ADD_MESSAGE', payload: bubbleMsg })
+        }
+
+        const mentioned = parseConstellationMentions(accumulatedContent)
+        if (mentioned.length > 0) {
+          dispatch({ type: 'SET_HIGHLIGHTED', payload: mentioned })
+        }
       }
 
       // After streaming, if this was for a constellation, mark it explored

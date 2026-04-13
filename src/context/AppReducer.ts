@@ -32,6 +32,15 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, messages }
     }
 
+    case 'UPDATE_MESSAGE': {
+      const messages = state.messages.map(m =>
+        m.id === action.payload.id
+          ? { ...m, content: action.payload.content }
+          : m
+      )
+      return { ...state, messages }
+    }
+
     case 'UNLOCK_CONSTELLATION':
       if (state.unlockedConstellations.includes(action.payload)) return state
       return {

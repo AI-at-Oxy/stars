@@ -6,6 +6,7 @@ import { StarField } from './StarField'
 import { ConstellationLines } from './ConstellationLines'
 import { ConstellationLabel } from './ConstellationLabel'
 import { ConstellationHitArea } from './ConstellationHitArea'
+import { ConstellationArt } from './ConstellationArt'
 import type { Star } from '../../types'
 
 interface SkyMapProps {
@@ -182,6 +183,17 @@ export function SkyMap({
               isSelected={selectedConstellation === constellation.id}
               isHovered={hoveredConstellation === constellation.id}
               isHighlighted={highlightedConstellations.includes(constellation.id)}
+            />
+          ))}
+
+          {/* Constellation art overlays — Stellarium illustrations, screen-blended onto sky */}
+          {CONSTELLATIONS.map(constellation => (
+            <ConstellationArt
+              key={constellation.id}
+              constellation={constellation}
+              starsById={starsById}
+              isSelected={selectedConstellation === constellation.id}
+              isHovered={hoveredConstellation === constellation.id}
             />
           ))}
 

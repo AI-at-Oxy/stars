@@ -25,7 +25,7 @@ export const STARS: Star[] = [
   { id: 23, ra: 17.537, dec: 86.587, mag: 4.35, bayer: 'δ UMi' },
   { id: 24, ra: 16.766, dec: 82.037, mag: 4.23, bayer: 'ε UMi' },
   { id: 25, ra: 15.734, dec: 77.795, mag: 4.31, bayer: 'ζ UMi' },
-  { id: 26, ra: 15.154, dec: 74.156, mag: 5.02, bayer: 'η UMi' },
+  { id: 26, ra: 15.154, dec: 74.156, mag: 5.02, name: 'Anwar al Farkadain', bayer: 'η UMi' },
 
   // ── LEO ─────────────────────────────────────────────────────────────────────
   { id: 40, ra: 10.139, dec: 11.967, mag: 1.35, name: 'Regulus', bayer: 'α Leo' },
@@ -56,15 +56,13 @@ export const STARS: Star[] = [
 
   // ── ORION ───────────────────────────────────────────────────────────────────
   { id: 100, ra: 5.919, dec: 7.407,  mag: 0.45, name: 'Betelgeuse', bayer: 'α Ori' },
-  { id: 101, ra: 5.242, dec: -8.202, mag: 0.18, name: 'Rigel', bayer: 'β Ori' },
-  { id: 102, ra: 5.534, dec: -0.299, mag: 2.06, name: 'Bellatrix', bayer: 'γ Ori' },
-  { id: 103, ra: 5.679, dec: -1.943, mag: 2.23, name: 'Mintaka', bayer: 'δ Ori' },
-  { id: 104, ra: 5.603, dec: -1.202, mag: 1.69, name: 'Alnilam', bayer: 'ε Ori' },
-  { id: 105, ra: 5.533, dec: -2.600, mag: 1.74, name: 'Alnitak', bayer: 'ζ Ori' },
-  { id: 106, ra: 4.830, dec: 6.961,  mag: 3.19, name: 'Saiph', bayer: 'κ Ori' },
-  { id: 107, ra: 5.796, dec: -9.670, mag: 2.77, name: 'Rigel (foot)', bayer: 'κ Ori' },
-  { id: 108, ra: 5.416, dec: 6.350,  mag: 2.77, name: 'Meissa', bayer: 'λ Ori' },
-  { id: 109, ra: 5.248, dec: -8.202, mag: 0.18, name: 'Rigel', bayer: 'β Ori' },
+  { id: 101, ra: 5.242, dec: -8.202, mag: 0.18, name: 'Rigel',      bayer: 'β Ori' },
+  { id: 102, ra: 5.419, dec: 6.350,  mag: 1.64, name: 'Bellatrix',  bayer: 'γ Ori' },
+  { id: 103, ra: 5.534, dec: -0.299, mag: 2.23, name: 'Mintaka',    bayer: 'δ Ori' },
+  { id: 104, ra: 5.603, dec: -1.202, mag: 1.69, name: 'Alnilam',    bayer: 'ε Ori' },
+  { id: 105, ra: 5.679, dec: -1.943, mag: 1.74, name: 'Alnitak',    bayer: 'ζ Ori' },
+  { id: 107, ra: 5.796, dec: -9.670, mag: 2.06, name: 'Saiph',      bayer: 'κ Ori' },
+  { id: 108, ra: 5.586, dec: 9.934,  mag: 3.39, name: 'Meissa',     bayer: 'λ Ori' },
 
   // ── CANIS MAJOR ─────────────────────────────────────────────────────────────
   { id: 120, ra: 6.753, dec: -16.716, mag: -1.46, name: 'Sirius', bayer: 'α CMa' },
